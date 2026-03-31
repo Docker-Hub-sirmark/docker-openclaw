@@ -84,7 +84,7 @@ def update_readme():
 
     image_tags = ""
     for variant in openclaw_variants:
-      tag = ", ".join([f"`{tag}`" for tag in tags(variant)])
+      tag = ",".join([f"`{tag}`" for tag in tags(variant)])
       image_tags += f" - [{tag}](https://github.com/openclaw/openclaw/blob/main/Dockerfile)\n"
 
     rendered = template \
