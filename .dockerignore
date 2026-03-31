@@ -1,0 +1,9 @@
+.dockerignore
+.git
+.github
+.gitignore
+Dockerfile
+LICENSE
+README.md
+README.template
+update-ci.py
