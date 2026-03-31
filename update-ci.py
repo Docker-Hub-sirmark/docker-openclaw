@@ -14,6 +14,8 @@ docker_arches = [
     "linux/arm64",
 ]
 
+docker_repo = "sirmark/openclaw"
+
 def build_args(variant):
     return [
         f"OPENCLAW_VARIANT={variant}",
@@ -67,6 +69,7 @@ def update_ci():
         versions += f"            version: v{openclaw_version}\n"
         versions += f"            context: ./openclaw\n"
         versions += f"            platforms: {platform}\n"
+        versions += f"            docker-repo: {docker_repo}\n"
         versions += f"            build-args: |\n"
         for build_arg in build_args(variant):
             versions += f"              {build_arg}\n"
