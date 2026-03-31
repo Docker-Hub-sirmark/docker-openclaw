@@ -1,0 +1,18 @@
+# OpenClaw Docker image
+
+Build OpenClaw Docker image
+
+From [OpenClaw](https://github.com/openclaw/openclaw) project
+
+## Supported tags and respective `Dockerfile` links
+
+%%TAGS%%
+## Docker Pull Command
+
+```console
+docker pull sirmark/openclaw
+```
+
+## OpenClaw Setup
+
+Read [OpenClaw Docs](https://docs.openclaw.ai/)
