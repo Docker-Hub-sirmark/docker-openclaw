@@ -3,7 +3,7 @@
 import os
 import sys
 
-openclaw_version = "2026.3.28"
+openclaw_version = "2026.3.31"
 
 openclaw_variants = ["default", "slim"]
 
@@ -22,19 +22,19 @@ def build_args(variant):
     ]
 
 def tags(variant):
-    if variant == "slim":
-        return [
-            "latest",
-            f"{openclaw_version}",
-            f"{openclaw_version}-slim",
-            f"{openclaw_version}-slim-{debian_codename}",
-            f"slim-{debian_codename}",
-            "slim",
-        ]
-    elif variant == "default":
+    if variant == openclaw_variants[0]:
         return [
             f"{openclaw_version}-{debian_codename}",
             f"{debian_codename}",
+        ]
+    elif variant == openclaw_variants[1]:
+        return [
+            "latest",
+            f"{openclaw_version}",
+            f"{openclaw_version}-{variant}",
+            f"{openclaw_version}-{variant}-{debian_codename}",
+            f"{variant}-{debian_codename}",
+            f"{variant}",
         ]
     else:
         return []
@@ -87,7 +87,7 @@ def update_readme():
 
     image_tags = ""
     for variant in openclaw_variants:
-      tag = ",".join([f"`{tag}`" for tag in tags(variant)])
+      tag = ",".join([f"`{t}`" for t in tags(variant)])
       image_tags += f" - [{tag}](https://github.com/openclaw/openclaw/blob/main/Dockerfile)\n"
 
     rendered = template \
