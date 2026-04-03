@@ -21,18 +21,18 @@ jobs:
       matrix:
         include:
 #VERSIONS
-          - name: openclaw-v2026.3.31-bookworm
-            version: v2026.3.31
+          - name: openclaw-v2026.4.2-bookworm
+            version: v2026.4.2
             context: ./openclaw
             platforms: linux/amd64,linux/arm64
             docker-repo: sirmark/openclaw
             build-args: |
               OPENCLAW_VARIANT=default
             tags: |
-              2026.3.31-bookworm
+              2026.4.2-bookworm
               bookworm
-          - name: openclaw-v2026.3.31-slim-bookworm
-            version: v2026.3.31
+          - name: openclaw-v2026.4.2-slim-bookworm
+            version: v2026.4.2
             context: ./openclaw
             platforms: linux/amd64,linux/arm64
             docker-repo: sirmark/openclaw
@@ -40,9 +40,9 @@ jobs:
               OPENCLAW_VARIANT=slim
             tags: |
               latest
-              2026.3.31
-              2026.3.31-slim
-              2026.3.31-slim-bookworm
+              2026.4.2
+              2026.4.2-slim
+              2026.4.2-slim-bookworm
               slim-bookworm
               slim
 #VERSIONS
