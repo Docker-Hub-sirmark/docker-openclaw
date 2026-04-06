@@ -3,7 +3,7 @@
 import os
 import sys
 
-openclaw_version = "2026.4.2"
+openclaw_version = "2026.4.5"
 
 openclaw_variants = ["default", "slim"]
 
