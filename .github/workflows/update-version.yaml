@@ -1,0 +1,49 @@
+name: OpenClaw Update Version File
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-version:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GH_PAT }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: pip install requests
+      - name: Run version check script
+        id: check_step
+        run: python check-version.py
+      - name: Setup SSH Signing Key
+        if: steps.check_step.outputs.should_push == 'true'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          git config --local user.name "${{ github.actor }}"
+          git config --local user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --local user.signingkey "~/.ssh/id_ed25519"
+          git config --local gpg.format ssh
+          git config --local commit.gpgsign true
+          echo "$(git config user.email) $(ssh-keygen -y -f ~/.ssh/id_ed25519)" > ~/.ssh/allowed_signers
+          git config --local gpg.ssh.allowedSignersFile "~/.ssh/allowed_signers"
+      - name: Commit and Push
+        if: steps.check_step.outputs.should_push == 'true'
+        run: |
+          REPO_NAME="${{ steps.check_step.outputs.repo_name }}"
+          VERSION="${{ steps.check_step.outputs.latest_version }}"
+          AUTHOR="github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+          python update-ci.py update-all
+          git add .
+          git commit -m "chore: bump ${REPO_NAME} version to v${VERSION}" --author="${AUTHOR}"
+          git pull --rebase
+          git push

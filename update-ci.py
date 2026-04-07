@@ -3,16 +3,16 @@
 import os
 import sys
 
-openclaw_version = "2026.4.5"
-
 openclaw_variants = ["default", "slim"]
 
-debian_codename = "bookworm"
+openclaw_version_file = "openclaw_version"
 
 docker_arches = [
     "linux/amd64",
     "linux/arm64",
 ]
+
+debian_codename = "bookworm"
 
 docker_repo = "sirmark/openclaw"
 
@@ -99,6 +99,8 @@ def usage():
     sys.exit(1)
 
 if __name__ == "__main__":
+    openclaw_version = read_file(openclaw_version_file).strip()
+
     if len(sys.argv) != 2:
         usage()
 

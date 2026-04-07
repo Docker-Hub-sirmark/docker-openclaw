@@ -2,8 +2,10 @@
 .git
 .github
 .gitignore
+check-version.py
 Dockerfile
 LICENSE
+openclaw_version
 README.md
 README.template
 update-ci.py
