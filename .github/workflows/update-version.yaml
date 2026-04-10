@@ -2,6 +2,7 @@ name: OpenClaw Update Version File
 
 permissions:
   contents: write
+  pull-requests: write
 
 on:
   schedule:
@@ -10,40 +11,70 @@ on:
 
 jobs:
   update-version:
-    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v6
         with:
           python-version: '3.14'
       - run: pip install requests
-      - name: Run version check script
+      - name: Check version
         id: check_step
         run: python check-version.py
-      - name: Setup SSH Signing Key
+      - name: Update version
         if: steps.check_step.outputs.should_push == 'true'
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          git config --local user.name "${{ github.actor }}"
-          git config --local user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
-          git config --local user.signingkey "~/.ssh/id_ed25519"
-          git config --local gpg.format ssh
-          git config --local commit.gpgsign true
-          echo "$(git config user.email) $(ssh-keygen -y -f ~/.ssh/id_ed25519)" > ~/.ssh/allowed_signers
-          git config --local gpg.ssh.allowedSignersFile "~/.ssh/allowed_signers"
-      - name: Commit and Push
+        run: python update-ci.py update-all
+      - name: Get release notes
         if: steps.check_step.outputs.should_push == 'true'
+        uses: octokit/request-action@v3.x
+        id: get_release_notes
+        with:
+          route: GET /repos/${{ steps.check_step.outputs.repo_name }}/releases/tags/v${{ steps.check_step.outputs.latest_version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Format release body
+        if: steps.check_step.outputs.should_push == 'true'
+        id: format_release_body
+        env:
+          RELEASE_NOTE: ${{ steps.get_release_notes.outputs.data }}
         run: |
-          REPO_NAME="${{ steps.check_step.outputs.repo_name }}"
-          VERSION="${{ steps.check_step.outputs.latest_version }}"
-          AUTHOR="github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
-          python update-ci.py update-all
-          git add .
-          git commit -m "chore: bump ${REPO_NAME} version to v${VERSION}" --author="${AUTHOR}"
-          git pull --rebase
-          git push
+          RELEASE_BODY_PATH="${{ runner.temp }}/release_body.md"
+          {
+            echo "Bumps [${{ steps.check_step.outputs.repo_name }}](https://github.com/${{ steps.check_step.outputs.repo_name }}) version from v${{ steps.check_step.outputs.previous_version }} to v${{ steps.check_step.outputs.latest_version }}"
+            echo ""
+            echo "<details>"
+            echo "<summary>Release notes</summary>"
+            echo "<p><em>Sourced from <a href="https://github.com/${{ steps.check_step.outputs.repo_name }}/releases/tag/v${{ steps.check_step.outputs.latest_version }}">${{ steps.check_step.outputs.repo_name }}'s release</a>.</em></p>"
+            echo ""
+            echo "<blockquote>"
+            echo ""
+          } > "${RELEASE_BODY_PATH}"
+          echo "${RELEASE_NOTE}" | jq -r '.body' >> "${RELEASE_BODY_PATH}"
+          {
+            echo ""
+            echo "</blockquote>"
+            echo ""
+            echo "</details>"
+            echo ""
+          } >> "${RELEASE_BODY_PATH}"
+          echo "release_body_path=${RELEASE_BODY_PATH}" >> $GITHUB_OUTPUT
+      - name: Create Pull Request
+        if: steps.check_step.outputs.should_push == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sign-commits: true
+          signoff: true
+          branch: github-actions/actions/update-version-v${{ steps.check_step.outputs.latest_version }}
+          commit-message: |
+            chore: bump ${{ steps.check_step.outputs.repo_name }} version from v${{ steps.check_step.outputs.previous_version }} to v${{ steps.check_step.outputs.latest_version }}
+
+            Bumps [${{ steps.check_step.outputs.repo_name }}](https://github.com/${{ steps.check_step.outputs.repo_name }}) version from v${{ steps.check_step.outputs.previous_version }} to v${{ steps.check_step.outputs.latest_version }}
+            - [Release notes](https://github.com/${{ steps.check_step.outputs.repo_name }}/releases/tag/v${{ steps.check_step.outputs.latest_version }})
+            - [Commits](https://github.com/${{ steps.check_step.outputs.repo_name }}/compare/v${{ steps.check_step.outputs.previous_version }}...v${{ steps.check_step.outputs.latest_version }})
+          title: "chore: bump ${{ steps.check_step.outputs.repo_name }} version from v${{ steps.check_step.outputs.previous_version }} to v${{ steps.check_step.outputs.latest_version }}"
+          body-path: ${{ steps.format_release_body.outputs.release_body_path }}

@@ -1,0 +1,26 @@
+#MATRIX
+- name: openclaw-v2026.4.9-bookworm
+  version: v2026.4.9
+  context: ./openclaw
+  platforms: linux/amd64,linux/arm64
+  docker-repo: sirmark/openclaw
+  build-args: |
+    OPENCLAW_VARIANT=default
+  tags: |
+    2026.4.9-bookworm
+    bookworm
+- name: openclaw-v2026.4.9-slim-bookworm
+  version: v2026.4.9
+  context: ./openclaw
+  platforms: linux/amd64,linux/arm64
+  docker-repo: sirmark/openclaw
+  build-args: |
+    OPENCLAW_VARIANT=slim
+  tags: |
+    latest
+    2026.4.9
+    2026.4.9-slim
+    2026.4.9-slim-bookworm
+    slim-bookworm
+    slim
+#MATRIX

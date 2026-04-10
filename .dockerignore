@@ -3,6 +3,7 @@
 .github
 .gitignore
 check-version.py
+ci-matrix.yaml
 Dockerfile
 LICENSE
 openclaw_version

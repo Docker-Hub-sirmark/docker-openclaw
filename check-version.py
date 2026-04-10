@@ -52,7 +52,7 @@ def main():
             with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
                 print("should_push=true", file=fh)
                 print(f"latest_version={latest_version}", file=fh)
-                print(f"repo_name={external_repo.split('/')[-1]}", file=fh)
+                print(f"repo_name={external_repo}", file=fh)
 
 if __name__ == "__main__":
     main()

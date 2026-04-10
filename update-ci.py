@@ -51,35 +51,35 @@ def write_file(file, contents):
         f.write(contents)
 
 def update_ci():
-    file = ".github/workflows/ci.yaml"
+    file = "ci-matrix.yaml"
     config = read_file(file)
 
-    versions = ""
+    matrix = ""
     for variant in openclaw_variants:
         platform = []
         for arch in docker_arches:
             platform.append(f"{arch}")
         platform = ",".join(platform)
 
-        versions += f"          - name: openclaw-v{openclaw_version}-"
-        versions += (
+        matrix += f"- name: openclaw-v{openclaw_version}-"
+        matrix += (
             f"{debian_codename}\n" if variant == "default"
             else f"{variant}-{debian_codename}\n"
         )
-        versions += f"            version: v{openclaw_version}\n"
-        versions += f"            context: ./openclaw\n"
-        versions += f"            platforms: {platform}\n"
-        versions += f"            docker-repo: {docker_repo}\n"
-        versions += f"            build-args: |\n"
+        matrix += f"  version: v{openclaw_version}\n"
+        matrix += f"  context: ./openclaw\n"
+        matrix += f"  platforms: {platform}\n"
+        matrix += f"  docker-repo: {docker_repo}\n"
+        matrix += f"  build-args: |\n"
         for build_arg in build_args(variant):
-            versions += f"              {build_arg}\n"
-        versions += f"            tags: |\n"
+            matrix += f"    {build_arg}\n"
+        matrix += f"  tags: |\n"
         for tag in tags(variant):
-            versions += f"              {tag}\n"
+            matrix += f"    {tag}\n"
 
-    marker = "#VERSIONS\n"
+    marker = "#MATRIX\n"
     split = config.split(marker)
-    rendered = split[0] + marker + versions + marker + split[2]
+    rendered = split[0] + marker + matrix + marker + split[2]
     write_file(file, rendered)
 
 def update_readme():
