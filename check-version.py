@@ -37,20 +37,21 @@ def main():
         print(f"Error fetching version: {e}")
         sys.exit(1)
 
-    local_version = read_file(version_file)
+    previous_version = read_file(version_file)
 
-    if latest_version == local_version:
+    if latest_version == previous_version:
         print(f"Versions match: {latest_version}. No update.")
         if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
                 print("should_push=false", file=fh)
     else:
-        print(f"New version found: {latest_version} (was: {local_version})")
+        print(f"New version found: {latest_version} (was: {previous_version})")
         write_file(version_file, latest_version)
 
         if "GITHUB_OUTPUT" in os.environ:
             with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
                 print("should_push=true", file=fh)
+                print(f"previous_version={previous_version}", file=fh)
                 print(f"latest_version={latest_version}", file=fh)
                 print(f"repo_name={external_repo}", file=fh)
 
