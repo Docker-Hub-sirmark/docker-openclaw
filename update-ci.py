@@ -3,41 +3,42 @@
 import os
 import sys
 
-openclaw_variants = ["default", "slim"]
+openclaw_variants = ("default", "slim")
 
 openclaw_version_file = "openclaw_version"
 
-docker_arches = [
+docker_arches = (
     "linux/amd64",
     "linux/arm64",
-]
+)
 
 debian_codename = "bookworm"
 
 docker_repo = "sirmark/openclaw"
 
 def build_args(variant):
-    return [
+    return (
         f"OPENCLAW_VARIANT={variant}",
-    ]
+        # Optionally install Chromium and Xvfb for browser automation.
+        'OPENCLAW_INSTALL_BROWSER=1',
+    )
 
 def tags(variant):
     if variant == openclaw_variants[0]:
-        return [
+        return (
             f"{openclaw_version}-{debian_codename}",
             f"{debian_codename}",
-        ]
-    elif variant == openclaw_variants[1]:
-        return [
+        )
+    else:
+        variant == openclaw_variants[1]
+        return (
             "latest",
             f"{openclaw_version}",
             f"{openclaw_version}-{variant}",
             f"{openclaw_version}-{variant}-{debian_codename}",
             f"{variant}-{debian_codename}",
             f"{variant}",
-        ]
-    else:
-        return []
+        )
 
 def read_file(file):
     with open(file, "r") as f:

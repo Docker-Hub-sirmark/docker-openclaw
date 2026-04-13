@@ -6,6 +6,7 @@
   docker-repo: sirmark/openclaw
   build-args: |
     OPENCLAW_VARIANT=default
+    OPENCLAW_INSTALL_BROWSER=1
   tags: |
     2026.4.11-bookworm
     bookworm
@@ -16,6 +17,7 @@
   docker-repo: sirmark/openclaw
   build-args: |
     OPENCLAW_VARIANT=slim
+    OPENCLAW_INSTALL_BROWSER=1
   tags: |
     latest
     2026.4.11
