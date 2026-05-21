@@ -1,6 +1,6 @@
 #MATRIX
-- name: openclaw-v2026.5.18-bookworm
-  version: v2026.5.18
+- name: openclaw-v2026.5.19-bookworm
+  version: v2026.5.19
   context: ./openclaw
   platforms: linux/amd64,linux/arm64
   docker-repo: sirmark/openclaw
@@ -8,10 +8,10 @@
     OPENCLAW_VARIANT=default
     OPENCLAW_INSTALL_BROWSER=1
   tags: |
-    2026.5.18-bookworm
+    2026.5.19-bookworm
     bookworm
-- name: openclaw-v2026.5.18-slim-bookworm
-  version: v2026.5.18
+- name: openclaw-v2026.5.19-slim-bookworm
+  version: v2026.5.19
   context: ./openclaw
   platforms: linux/amd64,linux/arm64
   docker-repo: sirmark/openclaw
@@ -20,9 +20,9 @@
     OPENCLAW_INSTALL_BROWSER=1
   tags: |
     latest
-    2026.5.18
-    2026.5.18-slim
-    2026.5.18-slim-bookworm
+    2026.5.19
+    2026.5.19-slim
+    2026.5.19-slim-bookworm
     slim-bookworm
     slim
 #MATRIX
