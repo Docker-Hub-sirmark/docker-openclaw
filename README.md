@@ -6,8 +6,8 @@ From [OpenClaw](https://github.com/openclaw/openclaw) project
 
 ## Supported tags and respective `Dockerfile` links
 
- - [`2026.5.18-bookworm`,`bookworm`](https://github.com/openclaw/openclaw/blob/main/Dockerfile)
- - [`latest`,`2026.5.18`,`2026.5.18-slim`,`2026.5.18-slim-bookworm`,`slim-bookworm`,`slim`](https://github.com/openclaw/openclaw/blob/main/Dockerfile)
+ - [`2026.5.19-bookworm`,`bookworm`](https://github.com/openclaw/openclaw/blob/main/Dockerfile)
+ - [`latest`,`2026.5.19`,`2026.5.19-slim`,`2026.5.19-slim-bookworm`,`slim-bookworm`,`slim`](https://github.com/openclaw/openclaw/blob/main/Dockerfile)
 
 ## Docker Pull Command
 
