@@ -16,29 +16,22 @@ debian_codename = "bookworm"
 
 docker_repo = "sirmark/openclaw"
 
-def build_args(variant):
+def build_args():
     return (
-        f"OPENCLAW_VARIANT={variant}",
+        'OPENCLAW_EXTENSIONS=diagnostics-otel',
         # Optionally install Chromium and Xvfb for browser automation.
         'OPENCLAW_INSTALL_BROWSER=1',
     )
 
-def tags(variant):
-    if variant == openclaw_variants[0]:
-        return (
-            f"{openclaw_version}-{debian_codename}",
-            f"{debian_codename}",
-        )
-    else:
-        variant == openclaw_variants[1]
-        return (
-            "latest",
-            f"{openclaw_version}",
-            f"{openclaw_version}-{variant}",
-            f"{openclaw_version}-{variant}-{debian_codename}",
-            f"{variant}-{debian_codename}",
-            f"{variant}",
-        )
+def tags():
+    return (
+        "latest",
+        f"{openclaw_version}",
+        f"{openclaw_version}-slim",
+        f"{openclaw_version}-slim-{debian_codename}",
+        f"slim-{debian_codename}",
+        f"slim",
+    )
 
 def read_file(file):
     with open(file, "r") as f:
@@ -56,26 +49,21 @@ def update_ci():
     config = read_file(file)
 
     matrix = ""
-    for variant in openclaw_variants:
-        platform = []
-        for arch in docker_arches:
-            platform.append(f"{arch}")
-        platform = ",".join(platform)
+    platform = []
+    for arch in docker_arches:
+        platform.append(f"{arch}")
+    platform = ",".join(platform)
 
-        matrix += f"- name: openclaw-v{openclaw_version}-"
-        matrix += (
-            f"{debian_codename}\n" if variant == "default"
-            else f"{variant}-{debian_codename}\n"
-        )
-        matrix += f"  version: v{openclaw_version}\n"
-        matrix += f"  context: ./openclaw\n"
-        matrix += f"  platforms: {platform}\n"
-        matrix += f"  docker-repo: {docker_repo}\n"
-        matrix += f"  build-args: |\n"
-        for build_arg in build_args(variant):
+    matrix += f"- name: openclaw-v{openclaw_version}-slim-{debian_codename}\n"
+    matrix += f"  version: v{openclaw_version}\n"
+    matrix += f"  context: ./openclaw\n"
+    matrix += f"  platforms: {platform}\n"
+    matrix += f"  docker-repo: {docker_repo}\n"
+    matrix += f"  build-args: |\n"
+    for build_arg in build_args():
             matrix += f"    {build_arg}\n"
-        matrix += f"  tags: |\n"
-        for tag in tags(variant):
+    matrix += f"  tags: |\n"
+    for tag in tags():
             matrix += f"    {tag}\n"
 
     marker = "#MATRIX\n"
@@ -87,9 +75,8 @@ def update_readme():
     template = read_file("README.template")
 
     image_tags = ""
-    for variant in openclaw_variants:
-      tag = ",".join([f"`{t}`" for t in tags(variant)])
-      image_tags += f" - [{tag}](https://github.com/openclaw/openclaw/blob/main/Dockerfile)\n"
+    tag = ",".join([f"`{t}`" for t in tags()])
+    image_tags += f" - [{tag}](https://github.com/openclaw/openclaw/blob/main/Dockerfile)\n"
 
     rendered = template \
         .replace("%%TAGS%%", image_tags)
