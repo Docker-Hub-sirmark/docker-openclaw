@@ -27,15 +27,18 @@ jobs:
         run: |
           MATRIX_JSON=$(yq eval -o=json '{"include": .}' ci-matrix.yaml | jq -c .)
           echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
-  build:
+
+  build-amd64:
     if: |
       github.actor != 'dependabot[bot]' &&
       !contains(github.event.head_commit.message, 'dependabot[bot]')
     needs: generate-matrix
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     strategy:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix_json) }}
-    name: ${{ matrix.name }}
+    name: ${{ matrix.name }}-amd64
     steps:
       - uses: actions/checkout@v6
       - uses: actions/checkout@v6
@@ -49,14 +52,12 @@ jobs:
         with:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-
       - id: meta
         uses: docker/metadata-action@v6
         with:
           images: |
             ${{ matrix.docker-repo }}
           tags: ${{ matrix.tags }}
-
       - uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
@@ -65,20 +66,112 @@ jobs:
           dotnet: true
           haskell: true
           large-packages: true
-          swap-storage: true
-
-      - uses: docker/build-push-action@v7
+          swap-storage: false
+      - id: build
+        uses: docker/build-push-action@v7
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.file }}
-          platforms: ${{ matrix.platforms }}
-          push: ${{ github.event_name ==  'push' }}
+          platforms: linux/amd64
+          cache-from: type=gha,scope=docker-openclaw-amd64
+          cache-to: type=gha,mode=max,scope=docker-openclaw-amd64
           build-args: ${{ matrix.build-args }}
-          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
+          outputs: type=image,name=${{ matrix.docker-repo }},push-by-digest=true,push=true,name-canonical=true
 
+  build-arm64:
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      !contains(github.event.head_commit.message, 'dependabot[bot]')
+    needs: generate-matrix
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix_json) }}
+    name: ${{ matrix.name }}-arm64
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: openclaw/openclaw
+          ref: ${{ matrix.version }}
+          path: openclaw
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ matrix.docker-repo }}
+          tags: ${{ matrix.tags }}
+      - uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: true
+          docker-images: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: false
+      - id: build
+        uses: docker/build-push-action@v7
+        env:
+          DOCKER_BUILD_SUMMARY: false
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          platforms: linux/arm64
+          cache-from: type=gha,scope=docker-openclaw-arm64
+          cache-to: type=gha,mode=max,scope=docker-openclaw-arm64
+          build-args: ${{ matrix.build-args }}
+          labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
+          outputs: type=image,name=${{ matrix.docker-repo }},push-by-digest=true,push=true,name-canonical=true
+
+  create-push-manifest:
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      !contains(github.event.head_commit.message, 'dependabot[bot]')
+    needs: [generate-matrix, build-amd64, build-arm64]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix_json) }}
+    name: Create and push manifest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6
+        with:
+          repository: openclaw/openclaw
+          ref: ${{ matrix.version }}
+          path: openclaw
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ matrix.docker-repo }}
+          sep-tags: " "
+          tags: ${{ matrix.tags }}
+      - run: |
+          AMD64_DIGEST="${{ needs.build-amd64.outputs.digest }}"
+          ARM64_DIGEST="${{ needs.build-arm64.outputs.digest }}"
+          for TAG in ${{ steps.meta.outputs.tags }}; do
+            docker buildx imagetools create -t ${TAG} \
+              ${AMD64_DIGEST} \
+              ${ARM64_DIGEST}
+          done
       - uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ vars.DOCKER_HUB_USERNAME }}

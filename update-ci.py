@@ -18,7 +18,7 @@ docker_repo = "sirmark/openclaw"
 
 def build_args():
     return (
-        'OPENCLAW_EXTENSIONS=diagnostics-otel',
+        'OPENCLAW_EXTENSIONS=diagnostics-otel,codex',
         # Optionally install Chromium and Xvfb for browser automation.
         'OPENCLAW_INSTALL_BROWSER=1',
     )
@@ -49,15 +49,12 @@ def update_ci():
     config = read_file(file)
 
     matrix = ""
-    platform = []
-    for arch in docker_arches:
-        platform.append(f"{arch}")
-    platform = ",".join(platform)
-
     matrix += f"- name: openclaw-v{openclaw_version}-slim-{debian_codename}\n"
     matrix += f"  version: v{openclaw_version}\n"
     matrix += f"  context: ./openclaw\n"
-    matrix += f"  platforms: {platform}\n"
+    matrix += f"  platforms: |\n"
+    for arch in docker_arches:
+        matrix += f"    {arch}\n"
     matrix += f"  docker-repo: {docker_repo}\n"
     matrix += f"  build-args: |\n"
     for build_arg in build_args():

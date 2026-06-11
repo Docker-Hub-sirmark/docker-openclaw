@@ -2,10 +2,12 @@
 - name: openclaw-v2026.6.5-slim-bookworm
   version: v2026.6.5
   context: ./openclaw
-  platforms: linux/amd64,linux/arm64
+  platforms: |
+    linux/amd64
+    linux/arm64
   docker-repo: sirmark/openclaw
   build-args: |
-    OPENCLAW_EXTENSIONS=diagnostics-otel
+    OPENCLAW_EXTENSIONS=diagnostics-otel,codex
     OPENCLAW_INSTALL_BROWSER=1
   tags: |
     latest
