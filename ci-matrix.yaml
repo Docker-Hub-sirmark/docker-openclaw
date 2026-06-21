@@ -1,6 +1,6 @@
 #MATRIX
-- name: openclaw-v2026.6.8-slim-bookworm
-  version: v2026.6.8
+- name: openclaw-v2026.6.9-slim-bookworm
+  version: v2026.6.9
   context: ./openclaw
   platforms: |
     linux/amd64
@@ -11,9 +11,9 @@
     OPENCLAW_INSTALL_BROWSER=1
   tags: |
     latest
-    2026.6.8
-    2026.6.8-slim
-    2026.6.8-slim-bookworm
+    2026.6.9
+    2026.6.9-slim
+    2026.6.9-slim-bookworm
     slim-bookworm
     slim
 #MATRIX
