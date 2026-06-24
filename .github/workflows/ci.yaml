@@ -22,7 +22,7 @@ jobs:
     outputs:
       matrix_json: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - id: set-matrix
         run: |
           MATRIX_JSON=$(yq eval -o=json '{"include": .}' ci-matrix.yaml | jq -c .)
@@ -40,8 +40,8 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix_json) }}
     name: ${{ matrix.name }}-amd64
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
           ref: ${{ matrix.version }}
@@ -95,8 +95,8 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix_json) }}
     name: ${{ matrix.name }}-arm64
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
           ref: ${{ matrix.version }}
@@ -148,8 +148,8 @@ jobs:
       matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix_json) }}
     name: Create and push manifest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
           repository: openclaw/openclaw
           ref: ${{ matrix.version }}
