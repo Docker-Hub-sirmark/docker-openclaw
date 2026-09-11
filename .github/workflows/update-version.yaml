@@ -37,9 +37,10 @@ jobs:
       - name: Format release body
         if: steps.check_step.outputs.should_push == 'true'
         id: format_release_body
-        env:
-          RELEASE_NOTE: ${{ steps.get_release_notes.outputs.data }}
         run: |
+          cat << 'EOF' > "${{ runner.temp }}/release_note.json"
+          ${{ steps.get_release_notes.outputs.data }}
+          EOF
           RELEASE_BODY_PATH="${{ runner.temp }}/release_body.md"
           {
             echo "Bumps [${{ steps.check_step.outputs.repo_name }}](https://github.com/${{ steps.check_step.outputs.repo_name }}) version from v${{ steps.check_step.outputs.previous_version }} to v${{ steps.check_step.outputs.latest_version }}"
@@ -51,7 +52,7 @@ jobs:
             echo "<blockquote>"
             echo ""
           } > "${RELEASE_BODY_PATH}"
-          echo "${RELEASE_NOTE}" | jq -r '.body' >> "${RELEASE_BODY_PATH}"
+          jq -r '.body' "${{ runner.temp }}/release_note.json" >> "${RELEASE_BODY_PATH}"
           {
             echo ""
             echo "</blockquote>"
