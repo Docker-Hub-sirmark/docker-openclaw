@@ -31,7 +31,7 @@ jobs:
         uses: octokit/request-action@v3.x
         id: get_release_notes
         with:
-          route: GET /repos/${{ steps.check_step.outputs.repo_name }}/releases/tags/v${{ steps.check_step.outputs.latest_version }}
+          route: GET /repos/${{ steps.check_step.outputs.repo_name }}/contents/CHANGELOG/${{ steps.check_step.outputs.latest_version }}.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Format release body
@@ -41,18 +41,19 @@ jobs:
           cat << 'EOF' > "${{ runner.temp }}/release_note.json"
           ${{ steps.get_release_notes.outputs.data }}
           EOF
+          RELEASE_NOTE_URL=$(jq -r '.html_url' "${{ runner.temp }}/release_note.json")
           RELEASE_BODY_PATH="${{ runner.temp }}/release_body.md"
           {
             echo "Bumps [${{ steps.check_step.outputs.repo_name }}](https://github.com/${{ steps.check_step.outputs.repo_name }}) version from v${{ steps.check_step.outputs.previous_version }} to v${{ steps.check_step.outputs.latest_version }}"
             echo ""
             echo "<details>"
             echo "<summary>Release notes</summary>"
-            echo "<p><em>Sourced from <a href="https://github.com/${{ steps.check_step.outputs.repo_name }}/releases/tag/v${{ steps.check_step.outputs.latest_version }}">${{ steps.check_step.outputs.repo_name }}'s release</a>.</em></p>"
+            echo "<p><em>Sourced from <a href="${RELEASE_NOTE_URL}">${{ steps.check_step.outputs.repo_name }}'s release</a>.</em></p>"
             echo ""
             echo "<blockquote>"
             echo ""
           } > "${RELEASE_BODY_PATH}"
-          jq -r '.body' "${{ runner.temp }}/release_note.json" >> "${RELEASE_BODY_PATH}"
+          jq -r '.content' "${{ runner.temp }}/release_note.json" | tr -d '\n' | base64 --decode >> "${RELEASE_BODY_PATH}"
           {
             echo ""
             echo "</blockquote>"
